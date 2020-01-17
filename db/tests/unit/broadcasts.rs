@@ -166,7 +166,10 @@ fn broadcast_update_send_at() {
 
     assert_eq!(broadcast.status, BroadcastStatus::Pending);
     assert_eq!(broadcast.channel, BroadcastChannel::PushNotification);
-    assert_eq!(broadcast.send_at, new_send_at.clone());
+    assert_eq!(
+        broadcast.send_at.map(|s| s.timestamp()),
+        new_send_at.clone().map(|s| s.timestamp())
+    );
 
     let domain_actions = DomainAction::find_by_resource(
         Some(Tables::Broadcasts),
