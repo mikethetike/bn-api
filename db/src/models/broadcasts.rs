@@ -174,14 +174,6 @@ impl Broadcast {
                 ErrorCode::UpdateError,
                 Some("This broadcast has been cancelled, it cannot be modified.".to_string()),
             )),
-            BroadcastStatus::InProgress => Err(DatabaseError::new(
-                ErrorCode::UpdateError,
-                Some("This broadcast is in progress, it cannot be modified.".to_string()),
-            )),
-            BroadcastStatus::Completed => Err(DatabaseError::new(
-                ErrorCode::UpdateError,
-                Some("This broadcast has completed, it cannot be modified.".to_string()),
-            )),
             _ => {
                 self.validate_record(&attributes, connection)?;
                 let domain_actions = DomainAction::find_by_resource(
@@ -202,10 +194,13 @@ impl Broadcast {
                 );
 
                 if let Some(send_at) = send_at {
-                    if let Some(send_at) = send_at {
-                        for domain_action in domain_actions {
-                            domain_action.set_scheduled_at(send_at.clone(), connection)?;
-                        }
+                    //Either set the send_at to the specified date, if None set it to now
+                    let send_at = match send_at {
+                        Some(send_at) => send_at,
+                        None => Utc::now(),
+                    };
+                    for domain_action in domain_actions {
+                        domain_action.set_scheduled_at(send_at.clone(), connection)?;
                     }
                 }
 
@@ -279,6 +274,9 @@ impl Broadcast {
         new_send_at: Option<NaiveDateTime>,
         _connection: &PgConnection,
     ) -> Result<Result<(), ValidationError>, DatabaseError> {
+        if new_send_at.is_none() {
+            return Ok(Ok(()));
+        }
         match send_at {
             Some(_send_at) => {
                 if let Some(new_send_at) = new_send_at {

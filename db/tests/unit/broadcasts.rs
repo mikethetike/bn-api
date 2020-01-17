@@ -180,6 +180,19 @@ fn broadcast_update_send_at() {
     .unwrap();
 
     assert_eq!(domain_actions[0].scheduled_at, new_send_at.unwrap());
+
+    let new_send_at = Some(dates::now().add_seconds(-600).finish());
+    let attributes = BroadcastEditableAttributes {
+        notification_type: None,
+        channel: None,
+        name: None,
+        message: None,
+        send_at: Some(new_send_at.clone()),
+        status: None,
+    };
+    let broadcast = broadcast.update(attributes, conn);
+    //Cannot set a broadcast in the past.
+    assert!(broadcast.is_err());
 }
 
 #[test]
