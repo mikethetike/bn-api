@@ -51,6 +51,16 @@ pub enum SlugResponse {
     },
 }
 
+#[derive(Deserialize, Clone)]
+pub struct SlugParameters {
+    slug_type: Option<SlugTypes>,
+}
+
+pub fn index(
+    (connection, query, user): (ReadonlyConnection, Query<SlugParameters>, AuthUser),
+) -> Result<HttpResponse, BigNeonError> {
+}
+
 pub fn update(
     (connection, parameters, slug_parameters, user): (
         Connection,
