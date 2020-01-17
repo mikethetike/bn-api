@@ -197,7 +197,7 @@ impl Broadcast {
                     //Either set the send_at to the specified date, if None set it to now
                     let send_at = match send_at {
                         Some(send_at) => send_at,
-                        None => Utc::now(),
+                        None => Utc::now().naive_utc(),
                     };
                     for domain_action in domain_actions {
                         domain_action.set_scheduled_at(send_at.clone(), connection)?;
