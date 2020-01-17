@@ -243,6 +243,7 @@ impl Broadcast {
             Broadcast::send_at_has_not_passed(
                 self.send_at,
                 attributes.send_at.clone().unwrap_or(self.send_at.clone()),
+                self.status,
                 conn,
             )?,
         );
@@ -272,8 +273,15 @@ impl Broadcast {
     fn send_at_has_not_passed(
         send_at: Option<NaiveDateTime>,
         new_send_at: Option<NaiveDateTime>,
+        status: BroadcastStatus,
         _connection: &PgConnection,
     ) -> Result<Result<(), ValidationError>, DatabaseError> {
+        if status != BroadcastStatus::Pending {
+            return Ok(Err(create_validation_error(
+                "broadcast_not_pending",
+                "The send_at field cannot be updated if a broadcast is not pending",
+            )));
+        }
         if new_send_at.is_none() {
             return Ok(Ok(()));
         }

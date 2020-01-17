@@ -154,7 +154,6 @@ fn broadcast_update_send_at() {
         .finish();
 
     let new_send_at = Some(dates::now().add_seconds(60).finish());
-
     let attributes = BroadcastEditableAttributes {
         notification_type: None,
         channel: None,
@@ -163,7 +162,6 @@ fn broadcast_update_send_at() {
         send_at: Some(new_send_at.clone()),
         status: None,
     };
-
     let broadcast = broadcast.update(attributes, conn).unwrap();
 
     assert_eq!(broadcast.status, BroadcastStatus::Pending);
@@ -190,9 +188,31 @@ fn broadcast_update_send_at() {
         send_at: Some(new_send_at.clone()),
         status: None,
     };
-    let broadcast = broadcast.update(attributes, conn);
+    let broadcast_err = broadcast.update(attributes, conn);
     //Cannot set a broadcast in the past.
-    assert!(broadcast.is_err());
+    assert!(broadcast_err.is_err());
+
+    //Set the broadcast to in_progress then attempt to adjust the send_at
+    let attributes = BroadcastEditableAttributes {
+        notification_type: None,
+        channel: None,
+        name: None,
+        message: None,
+        send_at: None,
+        status: Some(BroadcastStatus::InProgress),
+    };
+    let broadcast = broadcast.update(attributes, conn).unwrap();
+    let new_send_at = Some(dates::now().add_seconds(60).finish());
+    let attributes = BroadcastEditableAttributes {
+        notification_type: None,
+        channel: None,
+        name: None,
+        message: None,
+        send_at: Some(new_send_at.clone()),
+        status: None,
+    };
+    let broadcast_err = broadcast.update(attributes, conn);
+    assert!(broadcast_err.is_err());
 }
 
 #[test]
