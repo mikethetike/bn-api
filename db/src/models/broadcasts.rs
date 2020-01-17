@@ -244,8 +244,7 @@ impl Broadcast {
                 self.send_at,
                 attributes.send_at.clone().unwrap_or(self.send_at.clone()),
                 self.status,
-                conn,
-            )?,
+            ),
         );
         Ok(validation_errors?)
     }
@@ -274,35 +273,34 @@ impl Broadcast {
         send_at: Option<NaiveDateTime>,
         new_send_at: Option<NaiveDateTime>,
         status: BroadcastStatus,
-        _connection: &PgConnection,
-    ) -> Result<Result<(), ValidationError>, DatabaseError> {
+    ) -> Result<(), ValidationError> {
         if status != BroadcastStatus::Pending {
-            return Ok(Err(create_validation_error(
+            return Err(create_validation_error(
                 "broadcast_not_pending",
                 "The send_at field cannot be updated if a broadcast is not pending",
-            )));
+            ));
         }
         if new_send_at.is_none() {
-            return Ok(Ok(()));
+            return Ok(());
         }
         match send_at {
             Some(_send_at) => {
                 if let Some(new_send_at) = new_send_at {
                     if new_send_at <= Utc::now().naive_utc() {
-                        return Ok(Err(create_validation_error(
+                        return Err(create_validation_error(
                             "send_at_in_the_past",
                             "The send_at field should be set to a time in the future",
-                        )));
+                        ));
                     }
                 }
-                return Ok(Ok(()));
+                return Ok(());
             }
             None => {
                 // If the send_at is None then it was sent immediately, so you cannot update it.
-                return Ok(Err(create_validation_error(
+                return Err(create_validation_error(
                     "broadcast_already_sent",
                     "This broadcast has already been sent, you cannot update the send_at time",
-                )));
+                ));
             }
         }
     }

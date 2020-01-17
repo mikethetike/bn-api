@@ -180,7 +180,10 @@ fn broadcast_update_send_at() {
     )
     .unwrap();
 
-    assert_eq!(domain_actions[0].scheduled_at, new_send_at.unwrap());
+    assert_eq!(
+        domain_actions[0].scheduled_at.timestamp(),
+        new_send_at.unwrap().timestamp()
+    );
 
     let new_send_at = Some(dates::now().add_seconds(-600).finish());
     let attributes = BroadcastEditableAttributes {
